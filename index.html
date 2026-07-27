@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>でんしゃで おぼえる！ とどうふけん くいず</title>
+  <meta name="description" content="小学一年生むけ！かっこいい電車の写真と日本地図を使って、楽しく都道府県の位置を覚えられるクイズゲーム。">
+  
+  <!-- Google Fonts: Noto Sans JP & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header class="app-header">
+    <div class="header-logo" id="header-logo-title">
+      <span class="train-icon">🚅</span> でんしゃで とどうふけん
+      <span id="test-mode-badge" class="test-badge" style="display: none;">🧪 てすともーど</span>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-label">ハイスコア</span>
+        <span id="header-highscore" class="stat-val">0 てん</span>
+      </div>
+      <button id="btn-open-settings" class="btn-settings-header" title="保護者設定">
+        ⚙️ ほごしゃ設定
+      </button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="app-main">
+
+    <!-- 1. タイトル画面 -->
+    <section id="screen-title" class="screen active">
+      <div class="title-card">
+        <div class="title-badge-tag">しょうがく１ねんせい むけ！</div>
+        <h1 class="title-heading">でんしゃで おぼえる！<br><span class="highlight-text">とどうふけん くいず</span></h1>
+        <p class="title-subtext">カッコいい でんしゃの しゃしんと 日本ちずで、とどうふけんの ばしょを おぼえよう！</p>
+        
+        <div class="title-rank-box">
+          <p class="rank-label">あなたの 現在の ランク:</p>
+          <p id="title-rank-name" class="rank-name">🌱 でんしゃ すきな こ</p>
+          <p class="rank-highscore">さいこう きろく: <strong id="title-highscore-val">0 てん</strong></p>
+        </div>
+
+        <div class="title-actions">
+          <button id="btn-start-game" class="btn-primary btn-large">
+            🎮 クイズを はじめる！
+          </button>
+          <button id="btn-view-album" class="btn-secondary btn-large">
+            📖 でんしゃずかん
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. クイズ画面 -->
+    <section id="screen-quiz" class="screen">
+      <!-- クイズ上部ステータス（スコア・ライフ・コンボ） -->
+      <div class="quiz-top-bar">
+        <div class="hearts-box" id="hearts-container">
+          <span class="heart-icon active">❤️</span>
+          <span class="heart-icon active">❤️</span>
+          <span class="heart-icon active">❤️</span>
+          <span class="heart-icon active">❤️</span>
+          <span class="heart-icon active">❤️</span>
+        </div>
+        <div class="quiz-score-box">
+          <span id="combo-val" class="combo-badge">🔥 0コンボ</span>
+          <span id="score-val" class="score-badge">0点</span>
+        </div>
+      </div>
+
+      <div class="quiz-layout">
+        <!-- 左カラム：電車実写写真 ＆ ①問題：名前選択 -->
+        <div class="quiz-left-panel">
+          <div class="train-photo-card">
+            <div class="photo-badge" id="train-category-badge">新幹線</div>
+            <div id="train-photo-loading" class="photo-loading">
+              <div class="spinner"></div>
+              <span>でんしゃの しゃしんを よみこみちゅう...</span>
+            </div>
+            <img id="train-photo" class="train-img" src="" alt="電車の写真" style="display: none;" />
+          </div>
+
+          <div class="question-block">
+            <h3 class="q-title">① この でんしゃの なまえは どれかな？</h3>
+            <div id="train-choices-container" class="choices-grid">
+              <!-- JSで5つの選択肢ボタンを動的挿入 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 右カラム：②問題：都道府県ビジュアル位置選択（SVG日本地図） -->
+        <div class="quiz-right-panel">
+          <div class="question-block">
+            <div class="q-header">
+              <h3 class="q-title">② この電車が はしっている とどうふけんを タップしよう！</h3>
+              <span id="selected-pref-count" class="selected-count-badge">0個 えらんでいるよ</span>
+            </div>
+            <p class="q-desc">（日本地図の つぎの ばしょを タップして えらんでね。なんこでも えらべるよ！）</p>
+
+            <div id="map-container" class="map-wrapper">
+              <!-- SVG Japan Map -->
+            </div>
+          </div>
+
+          <!-- 回答ボタン -->
+          <div class="submit-action-box">
+            <button id="btn-submit-answer" class="btn-primary btn-submit">
+              ✨ こたえる！
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 回答フィードバック オーバーレイ -->
+      <div id="feedback-panel" class="feedback-modal">
+        <div class="feedback-card">
+          <h2 id="feedback-title" class="feedback-title">🎉 だいせいかい！</h2>
+          <div id="feedback-body" class="feedback-body">
+            <!-- JSで詳細説明（正しい電車名・都道府県・豆知識）を表示 -->
+          </div>
+          <button id="btn-next-quiz" class="btn-primary btn-large">
+            つぎの クイズへ！
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. でんしゃ図鑑画面 -->
+    <section id="screen-album" class="screen">
+      <div class="album-header">
+        <h2>📖 でんしゃずかん （コレクション）</h2>
+        <span id="album-progress-text" class="album-progress">あつめた 電車: 0 / 20 しゅるい</span>
+        <button id="btn-close-album" class="btn-secondary">🔙 もどる</button>
+      </div>
+
+      <div id="album-grid" class="album-grid">
+        <!-- JSで解放済み/未解放の電車カードを生成 -->
+      </div>
+    </section>
+
+    <!-- 4. ゲームオーバー画面 -->
+    <section id="screen-gameover" class="screen">
+      <div class="gameover-card">
+        <div class="gameover-header">
+          <span class="gameover-icon">🛑</span>
+          <h2>ゲームオーバー</h2>
+          <p>ハートが なくなっちゃった！</p>
+        </div>
+
+        <div class="gameover-results">
+          <div class="result-row">
+            <span>こんかいの とくてん:</span>
+            <strong id="gameover-score-val" class="result-score">0 点</strong>
+            <span id="gameover-record-badge" class="new-record-badge" style="display: none;">🎉 しんきろく！</span>
+          </div>
+          <div class="result-row">
+            <span>あなたの ランク:</span>
+            <strong id="gameover-rank-val" class="result-rank">みならい車掌</strong>
+          </div>
+        </div>
+
+        <div class="gameover-actions">
+          <button id="btn-retry" class="btn-primary btn-large">
+            🔄 もういちど あそぶ！
+          </button>
+          <button id="btn-gameover-album" class="btn-secondary btn-large">
+            📖 でんしゃずかん
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. プレイ時間制限 タイムアップ画面 -->
+    <section id="screen-timeup" class="screen">
+      <div class="timeup-card">
+        <span class="timeup-icon">⏰</span>
+        <h2>きょうの ぷれい じかんが おわったよ！</h2>
+        <p>1にちの 制限時間に なりました。また あした あそぼうね！</p>
+        <div class="timeup-action">
+          <button id="btn-timeup-unlock" class="btn-secondary">
+            🔒 ほごしゃ用 ロック解除
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- モーダル1: パスコード入力画面（保護者確認用） -->
+  <div id="modal-passcode" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔒 ほごしゃ用 パスコード入力</h3>
+        <button id="btn-close-passcode" class="btn-close">&times;</button>
+      </div>
+      <p class="passcode-hint">設定画面に入るには パスコードを 入力してください。<br><small>(デフォルトパスワード: <strong>0724</strong>)</small></p>
+
+      <div id="passcode-dots" class="passcode-display">パスコードを入力</div>
+
+      <div class="numpad-grid">
+        <button class="numpad-btn" data-num="1">1</button>
+        <button class="numpad-btn" data-num="2">2</button>
+        <button class="numpad-btn" data-num="3">3</button>
+        <button class="numpad-btn" data-num="4">4</button>
+        <button class="numpad-btn" data-num="5">5</button>
+        <button class="numpad-btn" data-num="6">6</button>
+        <button class="numpad-btn" data-num="7">7</button>
+        <button class="numpad-btn" data-num="8">8</button>
+        <button class="numpad-btn" data-num="9">9</button>
+        <button id="btn-passcode-clear" class="numpad-btn action-btn">C</button>
+        <button class="numpad-btn" data-num="0">0</button>
+        <button id="btn-passcode-enter" class="numpad-btn action-btn enter">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- モーダル2: 保護者用設定画面 -->
+  <div id="modal-settings" class="modal-overlay">
+    <div class="modal-card settings-card">
+      <div class="modal-header">
+        <h3>⚙️ ほごしゃ設定</h3>
+        <button id="btn-close-settings" class="btn-close">&times;</button>
+      </div>
+
+      <div class="settings-body">
+
+        <!-- 🧪 テストモード設定 -->
+        <div class="setting-group highlight-group">
+          <div class="setting-label-row">
+            <span class="setting-title">🧪 テストモード</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="test-mode-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p class="setting-desc">テストモードをONにすると、通常モードとは別々の「ハイスコア」と「でんしゃ図鑑」でプレイできます。</p>
+        </div>
+
+        <!-- ⏰ 1日のプレイ制限時間設定 -->
+        <div class="setting-group">
+          <label for="select-time-limit" class="setting-title">⏱️ 1日のプレイ制限時間</label>
+          <select id="select-time-limit" class="setting-select">
+            <option value="5">5分</option>
+            <option value="10">10分</option>
+            <option value="15">15分</option>
+            <option value="20" selected>20分 (デフォルト)</option>
+            <option value="30">30分</option>
+            <option value="45">45分</option>
+            <option value="60">60分</option>
+            <option value="0">制限なし</option>
+          </select>
+        </div>
+
+        <!-- 🔑 パスワード変更 -->
+        <div class="setting-group">
+          <label for="input-new-passcode" class="setting-title">🔑 パスワードの変更</label>
+          <div class="input-inline">
+            <input type="password" id="input-new-passcode" class="setting-input" placeholder="新しい4桁以上の数字" maxlength="10" />
+            <button id="btn-save-passcode" class="btn-secondary">変更する</button>
+          </div>
+        </div>
+
+        <!-- 🗑️ データリセット -->
+        <div class="setting-group danger-group">
+          <span class="setting-title">🗑️ データの初期化 (リセット)</span>
+          <div class="reset-buttons-row">
+            <button id="btn-reset-normal-data" class="btn-danger">通常データをリセット</button>
+            <button id="btn-reset-test-data" class="btn-danger">テストデータをリセット</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- スクリプトの読み込み -->
+  <script src="js/trainData.js"></script>
+  <script src="js/japanMap.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
