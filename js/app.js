@@ -453,7 +453,7 @@ class QuizApp {
 
       if (isUnlocked) {
         card.innerHTML = `
-          <img class="album-card-img" src="${train.imageUrl}" alt="${train.name}" />
+          <img class="album-card-img" src="${train.imageUrl}" alt="${train.name}" referrerpolicy="no-referrer" crossorigin="anonymous" />
           <div class="album-card-body">
             <span class="album-card-category">${train.categoryName}</span>
             <h4 class="album-card-title">${train.name}</h4>

@@ -499,15 +499,20 @@ body {
   transition: transform 0.15s ease;
 }
 
-.pref-group:hover .pref-tile {
-  filter: brightness(1.08);
-  stroke-width: 3;
+.pref-path {
+  transition: fill 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+.pref-group:hover .pref-path {
+  filter: brightness(1.12);
+  stroke-width: 3.5;
 }
 
 .pref-text-hira {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .pref-text-kanji {
@@ -519,11 +524,11 @@ body {
 /* 日本地図正誤ハイライトのアニメーション */
 @keyframes missedPulse {
   0%, 100% { fill: #f59e0b; opacity: 1; }
-  50% { fill: #dc2626; opacity: 0.7; }
+  50% { fill: #dc2626; opacity: 0.75; }
 }
 
-.pref-group.missed rect {
-  animation: missedPulse 1s infinite;
+.pref-group.missed path {
+  animation: missedPulse 0.9s infinite;
 }
 
 .submit-action-box {
