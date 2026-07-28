@@ -248,6 +248,10 @@
         <!-- ⏰ 1日のプレイ制限時間設定 -->
         <div class="setting-group">
           <label for="select-time-limit" class="setting-title">⏱️ 1日のプレイ制限時間</label>
+          <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+            <span id="play-time-display" style="font-size: 0.9rem; font-weight: bold;">今日のプレイ時間: 0分</span>
+            <button id="btn-reset-playtime" class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">時間をリセット</button>
+          </div>
           <select id="select-time-limit" class="setting-select">
             <option value="5">5分</option>
             <option value="10">10分</option>

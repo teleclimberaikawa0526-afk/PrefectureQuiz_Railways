@@ -144,6 +144,19 @@ class QuizApp {
       }
     });
 
+    const resetPlayTimeBtn = document.getElementById('btn-reset-playtime');
+    if (resetPlayTimeBtn) {
+      resetPlayTimeBtn.addEventListener('click', () => {
+        if (confirm('今日のプレイ時間をリセットして、0分に戻しますか？')) {
+          window.storageManager.resetTodayPlaySeconds();
+          document.getElementById('play-time-display').textContent = `今日のプレイ時間: 0分`;
+          alert('プレイ時間をリセットしました。');
+          // 制限解除のためにタイムアップ画面を隠す
+          document.getElementById('screen-timeup').classList.remove('active');
+        }
+      });
+    }
+
     // タイムアップ画面からの保護者解除ボタン
     document.getElementById('btn-timeup-unlock').addEventListener('click', () => {
       this.openPasscodeModal();
@@ -567,6 +580,10 @@ class QuizApp {
 
     const timeLimit = window.storageManager.getTimeLimitMinutes();
     document.getElementById('select-time-limit').value = timeLimit.toString();
+
+    const todaySeconds = window.storageManager.getTodayPlaySeconds();
+    const todayMinutes = Math.floor(todaySeconds / 60);
+    document.getElementById('play-time-display').textContent = `今日のプレイ時間: ${todayMinutes}分`;
 
     document.getElementById('modal-settings').classList.add('active');
   }

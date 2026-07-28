@@ -99,6 +99,10 @@ class StorageManager {
     return parseInt(localStorage.getItem(key) || '0', 10);
   }
 
+  resetTodayPlaySeconds() {
+    localStorage.setItem(this.getTodayKey(), '0');
+  }
+
   addTodayPlaySeconds(seconds) {
     const current = this.getTodayPlaySeconds();
     const updated = current + seconds;
