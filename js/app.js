@@ -311,7 +311,7 @@ class QuizApp {
     });
   }
 
-  // 回答判定 (①電車名 ＆ ②都道府県位置)
+  // 回答判定 (割合部分点 & 0点以外ライフ減少なし)
   checkAnswer() {
     if (!this.selectedTrainName) {
       alert('電車の なまえを 選択肢から えらんでね！');
@@ -328,77 +328,92 @@ class QuizApp {
     // ① 電車名判定
     const isTrainNameCorrect = (this.selectedTrainName === this.currentTrain.name);
 
-    // ② 都道府県位置判定 (正解リストとユーザー選択が完全一致か)
+    // ② 都道府県位置判定
     const correctPrefSet = new Set(this.currentTrain.prefectures);
     const userPrefSet = new Set(this.selectedPrefectures);
 
-    let isPrefecturesCorrect = (correctPrefSet.size === userPrefSet.size);
-    if (isPrefecturesCorrect) {
-      for (let pid of correctPrefSet) {
-        if (!userPrefSet.has(pid)) {
-          isPrefecturesCorrect = false;
-          break;
-        }
-      }
-    }
+    let correctHits = 0;
+    let wrongHits = 0;
 
-    // 両方正解で完全正解！
-    const isBothCorrect = isTrainNameCorrect && isPrefecturesCorrect;
+    userPrefSet.forEach(id => {
+      if (correctPrefSet.has(id)) {
+        correctHits++;
+      } else {
+        wrongHits++;
+      }
+    });
+
+    const totalCorrectPrefCount = correctPrefSet.size;
+
+    // 部分点計算 (全問正解で100点)
+    let pointsEarned = 0;
+    let isPerfect = false;
+
+    if (isTrainNameCorrect) {
+      // 電車名正解の場合、都道府県の正解割合に応じたスコア (100点満点)
+      const ratio = correctHits / totalCorrectPrefCount;
+      let rawScore = Math.round(ratio * 100);
+
+      // 間違えて選んでしまった都道府県がある場合は減点（0点未満にはならない）
+      const penalty = wrongHits * 15;
+      pointsEarned = Math.max(0, rawScore - penalty);
+
+      // 完全ピッタリ正解（電車名正解 ＆ 都道府県過不足なし）
+      if (correctHits === totalCorrectPrefCount && wrongHits === 0) {
+        isPerfect = true;
+      }
+    } else {
+      // 電車名が間違っていた場合でも、都道府県が合っていれば少量の部分点を付与
+      const ratio = correctHits / totalCorrectPrefCount;
+      pointsEarned = Math.max(0, Math.round(ratio * 40) - (wrongHits * 10));
+    }
 
     // 日本地図に正解・過不足のハイライトを表示
     this.japanMap.showAnswerFeedback(this.currentTrain.prefectures);
+
+    // 0点以外ならライフ（ハート）は減らない！
+    const isZeroPoints = (pointsEarned === 0);
+
+    if (!isZeroPoints) {
+      if (isPerfect) {
+        this.combo += 1;
+        const comboBonus = (this.combo > 1) ? (this.combo * 20) : 0;
+        pointsEarned += comboBonus;
+      }
+      if (window.audioManager) window.audioManager.playCorrect();
+
+      this.score += pointsEarned;
+      window.storageManager.unlockTrain(this.currentTrain.id);
+      window.storageManager.saveHighScore(this.score);
+      this.updateHeaderUI();
+    } else {
+      // 0点（完全ミス）の場合のみライフを1つ消費
+      if (window.audioManager) window.audioManager.playWrong();
+      this.combo = 0;
+      this.lives -= 1;
+    }
 
     // フィードバックパネルの表示
     const feedbackPanel = document.getElementById('feedback-panel');
     const feedbackTitle = document.getElementById('feedback-title');
     const feedbackBody = document.getElementById('feedback-body');
 
-    if (isBothCorrect) {
-      // 正解処理
-      if (window.audioManager) window.audioManager.playCorrect();
-      
-      this.combo += 1;
-      const comboBonus = (this.combo > 1) ? (this.combo * 20) : 0;
-      const pointsEarned = 100 + comboBonus;
-      this.score += pointsEarned;
-
-      // 図鑑解放
-      window.storageManager.unlockTrain(this.currentTrain.id);
-      window.storageManager.saveHighScore(this.score);
-      this.updateHeaderUI();
-
+    if (isPerfect) {
       feedbackTitle.className = 'feedback-title correct';
-      feedbackTitle.innerHTML = `🎉 だいせいかい！ (+${pointsEarned}てん)`;
-      feedbackBody.innerHTML = `
-        <p class="fb-train-name">🚅 <strong>${this.currentTrain.kanjiName}</strong> (${this.currentTrain.name})</p>
-        <p class="fb-route">📍 はしっている 都道府県: <strong>${this.currentTrain.prefectureNames.join('・')}</strong></p>
-        <p class="fb-trivia">💡 ${this.currentTrain.trivia}</p>
-      `;
+      feedbackTitle.innerHTML = `🎉 パーフェクト！ 100てん！`;
+    } else if (pointsEarned > 0) {
+      feedbackTitle.className = 'feedback-title correct';
+      feedbackTitle.innerHTML = `🌟 ナイス！ ${pointsEarned}てん かくとく！`;
     } else {
-      // 不正解処理
-      if (window.audioManager) window.audioManager.playWrong();
-
-      this.combo = 0;
-      this.lives -= 1;
-
-      let reason = '';
-      if (!isTrainNameCorrect && !isPrefecturesCorrect) {
-        reason = '電車のなまえ と 都道府県のばしょ の どちらも ちがっていたよ。';
-      } else if (!isTrainNameCorrect) {
-        reason = '電車のなまえ が ちがっていたよ！';
-      } else {
-        reason = '走っている 都道府県の位置 が ちがっていたよ！';
-      }
-
       feedbackTitle.className = 'feedback-title wrong';
-      feedbackTitle.innerHTML = `❌ ざんねん！ （のこり ❤️ ${this.lives}つ）`;
-      feedbackBody.innerHTML = `
-        <p class="fb-reason">⚠️ ${reason}</p>
-        <p class="fb-train-name">正しい電車名: <strong>${this.currentTrain.kanjiName}</strong></p>
-        <p class="fb-route">正しい走行都道府県: <strong>${this.currentTrain.prefectureNames.join('・')}</strong></p>
-        <p class="fb-trivia">💡 ${this.currentTrain.trivia}</p>
-      `;
+      feedbackTitle.innerHTML = `❌ 0てん… （のこり ❤️ ${this.lives}つ）`;
     }
+
+    feedbackBody.innerHTML = `
+      <p class="fb-train-name">🚅 <strong>${this.currentTrain.kanjiName}</strong> (${this.currentTrain.name}) ${isTrainNameCorrect ? '✅' : '❌'}</p>
+      <p class="fb-route">📍 都道府県の正解: <strong>${correctHits} / ${totalCorrectPrefCount} 個 正解</strong> (${this.currentTrain.prefectureNames.join('・')})</p>
+      <p class="fb-trivia">💡 ${this.currentTrain.trivia}</p>
+    `;
 
     this.updateGameStatsUI();
     feedbackPanel.classList.add('active');
