@@ -80,6 +80,11 @@ class JapanMap {
       svg.setAttribute('width', '100%');
       svg.setAttribute('height', '100%');
 
+      // ラベルを最前面に表示するための専用レイヤー
+      const labelsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      labelsLayer.setAttribute('id', 'labels-layer');
+      labelsLayer.style.pointerEvents = 'none';
+
       // CSSでホバーやクリックを処理しやすいように、各都道府県のgタグを整理する
       const prefGroups = svg.querySelectorAll('g.prefecture');
       
@@ -155,14 +160,14 @@ class JapanMap {
         textHira.setAttribute('x', centerX);
         textHira.setAttribute('y', centerY + 4);
         textHira.setAttribute('text-anchor', 'middle');
-        textHira.setAttribute('class', 'pref-text-hira');
+        textHira.setAttribute('class', `pref-text-hira pref-text-hira-${id}`);
         textHira.setAttribute('font-size', '14px');
         textHira.setAttribute('font-weight', 'bold');
         textHira.style.display = 'none'; // デフォルトは非表示
         textHira.textContent = meta.yomi;
 
         labelGroup.appendChild(textHira);
-        g.appendChild(labelGroup);
+        labelsLayer.appendChild(labelGroup); // 都道府県のグループではなく専用レイヤーに追加
 
         // クリックイベントの登録
         g.addEventListener('click', () => {
@@ -171,6 +176,9 @@ class JapanMap {
           this.toggleSelection(id);
         });
       });
+
+      // すべての都道府県を描画した後にラベルレイヤーを追加（最前面にするため）
+      svg.appendChild(labelsLayer);
 
       // 初期状態のビジュアルを適用
       this.updateVisuals();
@@ -237,7 +245,7 @@ class JapanMap {
 
       const isSelected = this.selectedPrefectures.has(id);
       const shapes = group.querySelectorAll('path, polygon');
-      const textHira = group.querySelector('.pref-text-hira');
+      const textHira = this.container.querySelector(`.pref-text-hira-${id}`);
 
       if (isSelected) {
         group.classList.add('selected');
@@ -278,7 +286,7 @@ class JapanMap {
       if (!group) return;
 
       const shapes = group.querySelectorAll('path, polygon');
-      const textHira = group.querySelector('.pref-text-hira');
+      const textHira = this.container.querySelector(`.pref-text-hira-${id}`);
 
       const isCorrectAnswer = correctSet.has(id);
       const isUserSelected = userSet.has(id);
