@@ -80,11 +80,6 @@ class JapanMap {
       svg.setAttribute('width', '100%');
       svg.setAttribute('height', '100%');
 
-      // ラベルを最前面に表示するための専用レイヤー
-      const labelsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      labelsLayer.setAttribute('id', 'labels-layer');
-      labelsLayer.style.pointerEvents = 'none';
-
       // CSSでホバーやクリックを処理しやすいように、各都道府県のgタグを整理する
       const prefGroups = svg.querySelectorAll('g.prefecture');
       
@@ -167,7 +162,7 @@ class JapanMap {
         textHira.textContent = meta.yomi;
 
         labelGroup.appendChild(textHira);
-        labelsLayer.appendChild(labelGroup); // 都道府県のグループではなく専用レイヤーに追加
+        g.appendChild(labelGroup); // 各都道府県のグループ内に戻す（座標空間を合わせるため）
 
         // クリックイベントの登録
         g.addEventListener('click', () => {
@@ -176,9 +171,6 @@ class JapanMap {
           this.toggleSelection(id);
         });
       });
-
-      // すべての都道府県を描画した後にラベルレイヤーを追加（最前面にするため）
-      svg.appendChild(labelsLayer);
 
       // 初期状態のビジュアルを適用
       this.updateVisuals();
@@ -203,10 +195,15 @@ class JapanMap {
   }
 
   toggleSelection(id) {
+    const group = this.container.querySelector(`.pref-${id}`);
     if (this.selectedPrefectures.has(id)) {
       this.selectedPrefectures.delete(id);
     } else {
       this.selectedPrefectures.add(id);
+      // SVGでのz-indexハック：選択された要素をDOMの最後に移動して最前面に表示する
+      if (group && group.parentNode) {
+        group.parentNode.appendChild(group);
+      }
     }
     this.updateVisuals();
     this.onSelectionChange(Array.from(this.selectedPrefectures));
@@ -245,7 +242,7 @@ class JapanMap {
 
       const isSelected = this.selectedPrefectures.has(id);
       const shapes = group.querySelectorAll('path, polygon');
-      const textHira = this.container.querySelector(`.pref-text-hira-${id}`);
+      const textHira = group.querySelector('.pref-text-hira'); // 元に戻す
 
       if (isSelected) {
         group.classList.add('selected');
@@ -286,12 +283,13 @@ class JapanMap {
       if (!group) return;
 
       const shapes = group.querySelectorAll('path, polygon');
-      const textHira = this.container.querySelector(`.pref-text-hira-${id}`);
+      const textHira = group.querySelector('.pref-text-hira'); // 元に戻す
 
       const isCorrectAnswer = correctSet.has(id);
       const isUserSelected = userSet.has(id);
 
       if (isCorrectAnswer && isUserSelected) {
+        if (group.parentNode) group.parentNode.appendChild(group); // 最前面に移動
         group.classList.add('correct');
         shapes.forEach(shape => {
           shape.setAttribute('fill', '#10B981');
@@ -303,6 +301,7 @@ class JapanMap {
             textHira.style.display = 'block';
         }
       } else if (isCorrectAnswer && !isUserSelected) {
+        if (group.parentNode) group.parentNode.appendChild(group); // 最前面に移動
         group.classList.add('missed');
         shapes.forEach(shape => {
           shape.setAttribute('fill', '#F59E0B');
