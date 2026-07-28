@@ -153,23 +153,15 @@ class JapanMap {
 
         const textHira = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         textHira.setAttribute('x', centerX);
-        textHira.setAttribute('y', centerY - 4);
+        textHira.setAttribute('y', centerY + 4);
         textHira.setAttribute('text-anchor', 'middle');
         textHira.setAttribute('class', 'pref-text-hira');
-        // Geoloniaのマップはデフォルトより高解像度（サイズが大きい）ため、フォントサイズを調整する
-        textHira.setAttribute('font-size', '10px');
+        textHira.setAttribute('font-size', '14px');
+        textHira.setAttribute('font-weight', 'bold');
+        textHira.style.display = 'none'; // デフォルトは非表示
         textHira.textContent = meta.yomi;
 
-        const textKanji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textKanji.setAttribute('x', centerX);
-        textKanji.setAttribute('y', centerY + 11);
-        textKanji.setAttribute('text-anchor', 'middle');
-        textKanji.setAttribute('class', 'pref-text-kanji');
-        textKanji.setAttribute('font-size', '13px');
-        textKanji.textContent = meta.name;
-
         labelGroup.appendChild(textHira);
-        labelGroup.appendChild(textKanji);
         g.appendChild(labelGroup);
 
         // クリックイベントの登録
@@ -182,6 +174,19 @@ class JapanMap {
 
       // 初期状態のビジュアルを適用
       this.updateVisuals();
+
+      // Panzoomの初期化 (スマホでのピンチ操作、PCでのドラッグ等)
+      this.container.style.overflow = 'hidden';
+      this.container.style.touchAction = 'none';
+      if (typeof panzoom !== 'undefined') {
+        this.panZoomInstance = panzoom(svg, {
+          maxZoom: 10,
+          minZoom: 1,
+          bounds: true,
+          boundsPadding: 0.1,
+          zoomDoubleClickSpeed: 1,
+        });
+      }
       
     } catch (err) {
       console.error(err);
@@ -233,7 +238,6 @@ class JapanMap {
       const isSelected = this.selectedPrefectures.has(id);
       const shapes = group.querySelectorAll('path, polygon');
       const textHira = group.querySelector('.pref-text-hira');
-      const textKanji = group.querySelector('.pref-text-kanji');
 
       if (isSelected) {
         group.classList.add('selected');
@@ -242,8 +246,10 @@ class JapanMap {
           shape.setAttribute('stroke', '#FFD700');
           shape.setAttribute('stroke-width', '2');
         });
-        if (textHira) textHira.setAttribute('fill', '#FFFFFF');
-        if (textKanji) textKanji.setAttribute('fill', '#FEF08A');
+        if (textHira) {
+          textHira.setAttribute('fill', '#FFFFFF');
+          textHira.style.display = 'block'; // 選択時に表示
+        }
       } else {
         group.classList.remove('selected', 'correct', 'missed', 'wrong');
 
@@ -253,8 +259,10 @@ class JapanMap {
           shape.setAttribute('stroke', '#FFFFFF');
           shape.setAttribute('stroke-width', '0.5');
         });
-        if (textHira) textHira.setAttribute('fill', '#0F172A');
-        if (textKanji) textKanji.setAttribute('fill', '#334155');
+        if (textHira) {
+          textHira.setAttribute('fill', '#0F172A');
+          textHira.style.display = 'none'; // 未選択時は非表示
+        }
       }
     });
   }
@@ -271,7 +279,6 @@ class JapanMap {
 
       const shapes = group.querySelectorAll('path, polygon');
       const textHira = group.querySelector('.pref-text-hira');
-      const textKanji = group.querySelector('.pref-text-kanji');
 
       const isCorrectAnswer = correctSet.has(id);
       const isUserSelected = userSet.has(id);
@@ -283,8 +290,10 @@ class JapanMap {
           shape.setAttribute('stroke', '#F59E0B');
           shape.setAttribute('stroke-width', '1.5');
         });
-        if (textHira) textHira.setAttribute('fill', '#FFFFFF');
-        if (textKanji) textKanji.setAttribute('fill', '#FEF08A');
+        if (textHira) {
+            textHira.setAttribute('fill', '#FFFFFF');
+            textHira.style.display = 'block';
+        }
       } else if (isCorrectAnswer && !isUserSelected) {
         group.classList.add('missed');
         shapes.forEach(shape => {
@@ -292,8 +301,10 @@ class JapanMap {
           shape.setAttribute('stroke', '#DC2626');
           shape.setAttribute('stroke-width', '1.5');
         });
-        if (textHira) textHira.setAttribute('fill', '#FFFFFF');
-        if (textKanji) textKanji.setAttribute('fill', '#FFFFFF');
+        if (textHira) {
+            textHira.setAttribute('fill', '#FFFFFF');
+            textHira.style.display = 'block';
+        }
       } else if (!isCorrectAnswer && isUserSelected) {
         group.classList.add('wrong');
         shapes.forEach(shape => {
@@ -301,8 +312,10 @@ class JapanMap {
           shape.setAttribute('stroke', '#7F1D1D');
           shape.setAttribute('stroke-width', '1.5');
         });
-        if (textHira) textHira.setAttribute('fill', '#FFFFFF');
-        if (textKanji) textKanji.setAttribute('fill', '#FECACA');
+        if (textHira) {
+            textHira.setAttribute('fill', '#FFFFFF');
+            textHira.style.display = 'block';
+        }
       }
     });
   }
