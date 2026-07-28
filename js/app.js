@@ -77,11 +77,13 @@ class QuizApp {
       this.closePasscodeModal();
     });
 
-    document.querySelectorAll('.numpad-btn').forEach(btn => {
+    document.querySelectorAll('.numpad-btn[data-num]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         if (window.audioManager) window.audioManager.playClick();
-        const num = e.target.getAttribute('data-num');
-        this.handlePasscodeDigit(num);
+        const num = e.currentTarget.getAttribute('data-num');
+        if (num !== null) {
+          this.handlePasscodeDigit(num);
+        }
       });
     });
 
@@ -492,6 +494,10 @@ class QuizApp {
     if (this.currentPassInput.length < 8) {
       this.currentPassInput += digit;
       this.updatePasscodeDotsUI();
+      // 4桁入力時に自動照合を試みる
+      if (this.currentPassInput.length === 4 && this.currentPassInput === window.storageManager.getPasscode()) {
+        setTimeout(() => this.verifyPasscode(), 150);
+      }
     }
   }
 
@@ -502,18 +508,30 @@ class QuizApp {
 
   updatePasscodeDotsUI() {
     const dotsElem = document.getElementById('passcode-dots');
-    dotsElem.textContent = '● '.repeat(this.currentPassInput.length) || 'パスコードを入力';
+    if (!this.currentPassInput) {
+      dotsElem.textContent = 'パスコードを入力';
+      dotsElem.style.color = '#94a3b8';
+    } else {
+      dotsElem.textContent = '● '.repeat(this.currentPassInput.length);
+      dotsElem.style.color = '#1e293b';
+    }
   }
 
   verifyPasscode() {
     const correctCode = window.storageManager.getPasscode();
-    if (this.currentPassInput === correctCode) {
+    const input = this.currentPassInput.trim();
+
+    // 完全一致、または数値変換一致（"0724" と "724" などの表記揺れ対応）
+    const isMatch = (input === correctCode) ||
+                    (parseInt(input, 10) === parseInt(correctCode, 10) && input.length >= 3);
+
+    if (isMatch) {
       if (window.audioManager) window.audioManager.playCorrect();
       this.closePasscodeModal();
       this.openSettingsModal();
     } else {
       if (window.audioManager) window.audioManager.playWrong();
-      alert('パスコードが ちがいます！');
+      alert(`パスコードが ちがいます！（デフォルト: 0724）`);
       this.clearPasscodeDigit();
     }
   }
