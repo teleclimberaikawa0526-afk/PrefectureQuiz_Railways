@@ -164,53 +164,43 @@ class JapanMap {
         labelGroup.appendChild(textHira);
         g.appendChild(labelGroup); // 各都道府県のグループ内に戻す（座標空間を合わせるため）
 
-      });
+        // --- クリック・タップイベントの設定 ---
+        let touchStartX = 0;
+        let touchStartY = 0;
 
-      // --- 共通のクリック・タップ処理（panzoomと競合しないための実装） ---
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let lastToggleTime = 0;
-
-      svg.addEventListener('touchstart', (e) => {
-        if (e.changedTouches && e.changedTouches.length > 0) {
-          touchStartX = e.changedTouches[0].screenX;
-          touchStartY = e.changedTouches[0].screenY;
-        }
-      }, { passive: true });
-
-      const handleSelection = (e, id) => {
-        if (!this.isInteractive) return;
-        const now = Date.now();
-        if (now - lastToggleTime < 300) return; // ダブルタップ・イベント重複防止
-        lastToggleTime = now;
-        
-        if (e.cancelable && e.type === 'touchend') e.preventDefault();
-        if (window.audioManager) window.audioManager.playClick();
-        this.toggleSelection(id);
-      };
-
-      svg.addEventListener('touchend', (e) => {
-        if (e.changedTouches && e.changedTouches.length > 0) {
-          const touchEndX = e.changedTouches[0].screenX;
-          const touchEndY = e.changedTouches[0].screenY;
-          const dist = Math.sqrt(Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2));
+        const handleSelection = (e) => {
+          if (!this.isInteractive) return;
+          const now = Date.now();
+          // 短期間に複数回発火するのを防ぐ（300ms以内）
+          if (this.lastToggleTime && now - this.lastToggleTime < 300) return;
+          this.lastToggleTime = now;
           
-          if (dist < 20) { // 20px未満の移動ならタップとみなす
-            const prefGroup = e.target.closest('g.prefecture');
-            if (prefGroup) {
-              const id = parseInt(prefGroup.getAttribute('data-code'), 10);
-              if (!isNaN(id)) handleSelection(e, id);
+          if (e.cancelable && e.type === 'touchend') e.preventDefault();
+          if (window.audioManager) window.audioManager.playClick();
+          this.toggleSelection(id);
+        };
+
+        g.addEventListener('touchstart', (e) => {
+          if (e.changedTouches && e.changedTouches.length > 0) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+          }
+        }, { passive: true });
+
+        g.addEventListener('touchend', (e) => {
+          if (e.changedTouches && e.changedTouches.length > 0) {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            const dist = Math.sqrt(Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2));
+            if (dist < 20) { // 20px未満ならタップ
+              handleSelection(e);
             }
           }
-        }
-      });
+        });
 
-      svg.addEventListener('click', (e) => {
-        const prefGroup = e.target.closest('g.prefecture');
-        if (prefGroup) {
-          const id = parseInt(prefGroup.getAttribute('data-code'), 10);
-          if (!isNaN(id)) handleSelection(e, id);
-        }
+        g.addEventListener('click', (e) => {
+          handleSelection(e);
+        });
       });
 
       // 初期状態のビジュアルを適用
