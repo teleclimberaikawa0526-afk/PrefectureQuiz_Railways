@@ -260,18 +260,27 @@ class QuizApp {
     // 電車実写写真のセット
     const imgElem = document.getElementById('train-photo');
     const loadingElem = document.getElementById('train-photo-loading');
+    
     imgElem.style.display = 'none';
     loadingElem.style.display = 'flex';
 
-    imgElem.src = this.currentTrain.imageUrl;
+    // イベントハンドラーを src 代入前に確実に定義
     imgElem.onload = () => {
       loadingElem.style.display = 'none';
       imgElem.style.display = 'block';
     };
     imgElem.onerror = () => {
-      // 万が一画像が読み込めない場合のフォールバック
-      loadingElem.innerHTML = `<span style="font-size: 2.5rem;">🚅</span><br><span>${this.currentTrain.name}</span>`;
+      loadingElem.style.display = 'none';
+      imgElem.style.display = 'block';
     };
+
+    imgElem.src = this.currentTrain.imageUrl;
+
+    // すでにキャッシュ等で読み込み完了している場合のハンドリング
+    if (imgElem.complete && imgElem.naturalWidth > 0) {
+      loadingElem.style.display = 'none';
+      imgElem.style.display = 'block';
+    }
 
     // 電車のカテゴリバッジ
     document.getElementById('train-category-badge').textContent = this.currentTrain.categoryName;
@@ -470,7 +479,7 @@ class QuizApp {
 
       if (isUnlocked) {
         card.innerHTML = `
-          <img class="album-card-img" src="${train.imageUrl}" alt="${train.name}" referrerpolicy="no-referrer" crossorigin="anonymous" />
+          <img class="album-card-img" src="${train.imageUrl}" alt="${train.name}" />
           <div class="album-card-body">
             <span class="album-card-category">${train.categoryName}</span>
             <h4 class="album-card-title">${train.name}</h4>
