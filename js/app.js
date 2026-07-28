@@ -9,6 +9,7 @@ class QuizApp {
     this.lives = 5; // 5回まちがえるとゲームオーバー
     this.japanMap = null;
     this.playTimer = null;
+    this.lastActivityTime = Date.now();
 
     this.initDOM();
     this.initEvents();
@@ -28,6 +29,11 @@ class QuizApp {
   }
 
   initEvents() {
+    // ユーザーの操作（アクティビティ）を記録
+    const updateActivity = () => { this.lastActivityTime = Date.now(); };
+    document.addEventListener('click', updateActivity);
+    document.addEventListener('touchstart', updateActivity, { passive: true });
+
     // タイトル画面のボタン
     document.getElementById('btn-start-game').addEventListener('click', () => {
       if (window.audioManager) window.audioManager.playWhistle();
@@ -163,18 +169,21 @@ class QuizApp {
     });
   }
 
-  // 1分ごとのプレイ時間計測タイマー
+  // 1日ごとのプレイ時間計測タイマー
   startPlayTimer() {
     if (this.playTimer) clearInterval(this.playTimer);
     this.playTimer = setInterval(() => {
-      // プレイ中のみ加算
-      if (window.storageManager) {
+      // クイズ画面が開かれている ＆ 1分以内に操作がある場合のみ加算
+      const isQuizScreen = document.getElementById('screen-quiz').classList.contains('active');
+      const isActive = (Date.now() - this.lastActivityTime) < 60000; // 60秒以内の操作
+
+      if (isQuizScreen && isActive && window.storageManager) {
         window.storageManager.addTodayPlaySeconds(10);
         if (window.storageManager.isTimeLimitReached()) {
           this.showScreen('screen-timeup');
         }
       }
-    }, 10000); // 10秒ごとに累計加算
+    }, 10000); // 10秒ごとに判定
   }
 
   updateHeaderUI() {
@@ -228,6 +237,8 @@ class QuizApp {
     this.score = 0;
     this.combo = 0;
     this.lives = 5;
+    this.selectedPrefectures = [];
+    this.lastActivityTime = Date.now();
     this.updateGameStatsUI();
     this.showScreen('screen-quiz');
     this.nextQuestion();
