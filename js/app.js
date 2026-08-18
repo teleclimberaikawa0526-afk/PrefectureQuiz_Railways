@@ -7,6 +7,9 @@ class QuizApp {
     this.score = 0;
     this.combo = 0;
     this.lives = 5; // 5回まちがえるとゲームオーバー
+    this.gameMode = 'from_train';
+    this.fromMapState = 0; // 0=pref_selection, 1=train_selection
+    this.targetPrefCode = null;
     this.japanMap = null;
     this.playTimer = null;
     this.lastActivityTime = Date.now();
@@ -35,9 +38,21 @@ class QuizApp {
     document.addEventListener('touchstart', updateActivity, { passive: true });
 
     // タイトル画面のボタン
-    document.getElementById('btn-start-game').addEventListener('click', () => {
+    document.getElementById('btn-start-from-train').addEventListener('click', () => {
       if (window.audioManager) window.audioManager.playWhistle();
+      this.gameMode = 'from_train';
       this.startNewGame();
+    });
+
+    document.getElementById('btn-start-from-map').addEventListener('click', () => {
+      if (window.audioManager) window.audioManager.playWhistle();
+      this.gameMode = 'from_map';
+      this.startNewGame();
+    });
+
+    document.getElementById('btn-back-title').addEventListener('click', () => {
+      if (window.audioManager) window.audioManager.playClick();
+      this.showScreen('screen-title');
     });
 
     document.getElementById('btn-view-album').addEventListener('click', () => {
@@ -52,7 +67,7 @@ class QuizApp {
 
     // クイズ画面の回答ボタン
     document.getElementById('btn-submit-answer').addEventListener('click', () => {
-      this.checkAnswer();
+      this.checkAnswerFromTrain();
     });
 
     // クイズ画面の「つぎへ」ボタン
@@ -188,7 +203,7 @@ class QuizApp {
 
   updateHeaderUI() {
     const isTest = window.storageManager.isTestMode();
-    const highScore = window.storageManager.getHighScore();
+    const highScore = window.storageManager.getHighScore(this.gameMode || 'from_train');
 
     // テストモードバッジの切り替え
     const testBadge = document.getElementById('test-mode-badge');
@@ -209,7 +224,7 @@ class QuizApp {
     }
 
     // タイトル画面のランク称号表示
-    const rankTitle = this.getRankTitle(highScore);
+    const rankTitle = this.getRankTitle(window.storageManager.getHighScore('from_train') + window.storageManager.getHighScore('from_map'));
     const titleRankElem = document.getElementById('title-rank-name');
     if (titleRankElem) {
       titleRankElem.textContent = rankTitle;
@@ -233,12 +248,14 @@ class QuizApp {
   }
 
   // --- ゲーム開始 ---
+
   startNewGame() {
     this.score = 0;
     this.combo = 0;
     this.lives = 5;
     this.selectedPrefectures = [];
     this.lastActivityTime = Date.now();
+    this.updateHeaderUI();
     this.updateGameStatsUI();
     this.showScreen('screen-quiz');
     this.nextQuestion();
@@ -248,7 +265,6 @@ class QuizApp {
     document.getElementById('score-val').textContent = `${this.score}点`;
     document.getElementById('combo-val').textContent = `🔥 ${this.combo}コンボ`;
     
-    // ハートマーク更新
     const heartsContainer = document.getElementById('hearts-container');
     heartsContainer.innerHTML = '';
     for (let i = 0; i < 5; i++) {
@@ -266,65 +282,83 @@ class QuizApp {
     }
   }
 
-  // 次のクイズ問題へ
   nextQuestion() {
-    // フィードバックパネルを隠す
     document.getElementById('feedback-panel').classList.remove('active');
     
-    // 地図の選択状態解除
     this.japanMap.clearSelection();
-    this.japanMap.setInteractive(true);
     this.selectedTrainName = null;
+    this.selectedPrefectures = [];
 
-    // ランダムに電車を選択
     const trains = window.TRAIN_DATA;
     const randomIndex = Math.floor(Math.random() * trains.length);
     this.currentTrain = trains[randomIndex];
 
-    // 電車実写写真のセット
-    const imgElem = document.getElementById('train-photo');
-    const loadingElem = document.getElementById('train-photo-loading');
-    
-    imgElem.style.display = 'none';
-    loadingElem.style.display = 'flex';
+    if (this.gameMode === 'from_train') {
+      this.japanMap.setInteractive(true);
+      document.getElementById('btn-submit-answer').style.display = 'inline-block';
+      
+      document.getElementById('from-train-question-block').style.display = 'block';
+      document.getElementById('from-map-pref-question-block').style.display = 'none';
+      document.getElementById('from-map-train-question-block').style.display = 'none';
+      document.getElementById('train-photo-card').style.display = 'block';
+      
+      const mapTitle = document.getElementById('map-q-title');
+      if (mapTitle) mapTitle.textContent = '② この電車が はしっている とどうふけんを タップしよう！';
+      
+      const mapDesc = document.getElementById('map-q-desc');
+      if (mapDesc) mapDesc.style.display = 'block';
+      
+      this.updateSelectedPrefCountUI();
+      
+      const imgElem = document.getElementById('train-photo');
+      const loadingElem = document.getElementById('train-photo-loading');
+      imgElem.style.display = 'none';
+      loadingElem.style.display = 'flex';
+      imgElem.onload = () => { loadingElem.style.display = 'none'; imgElem.style.display = 'block'; };
+      imgElem.onerror = () => { loadingElem.style.display = 'none'; imgElem.style.display = 'block'; };
+      imgElem.src = this.currentTrain.imageUrl;
+      if (imgElem.complete && imgElem.naturalWidth > 0) {
+        loadingElem.style.display = 'none';
+        imgElem.style.display = 'block';
+      }
 
-    // イベントハンドラーを src 代入前に確実に定義
-    imgElem.onload = () => {
-      loadingElem.style.display = 'none';
-      imgElem.style.display = 'block';
-    };
-    imgElem.onerror = () => {
-      loadingElem.style.display = 'none';
-      imgElem.style.display = 'block';
-    };
+      document.getElementById('train-category-badge').textContent = this.currentTrain.categoryName;
+      this.renderTrainChoicesFromTrain();
 
-    imgElem.src = this.currentTrain.imageUrl;
-
-    // すでにキャッシュ等で読み込み完了している場合のハンドリング
-    if (imgElem.complete && imgElem.naturalWidth > 0) {
-      loadingElem.style.display = 'none';
-      imgElem.style.display = 'block';
+    } else if (this.gameMode === 'from_map') {
+      this.fromMapState = 0;
+      this.japanMap.setInteractive(false);
+      document.getElementById('btn-submit-answer').style.display = 'none';
+      
+      document.getElementById('from-train-question-block').style.display = 'none';
+      document.getElementById('train-photo-card').style.display = 'none';
+      
+      document.getElementById('from-map-pref-question-block').style.display = 'block';
+      document.getElementById('from-map-train-question-block').style.display = 'none';
+      
+      const mapTitle = document.getElementById('map-q-title');
+      if (mapTitle) mapTitle.textContent = '✨ ひかっている とどうふけんは どこかな？ ✨';
+      
+      const mapDesc = document.getElementById('map-q-desc');
+      if (mapDesc) mapDesc.style.display = 'none';
+      document.getElementById('selected-pref-count').textContent = '';
+      
+      const prefs = this.currentTrain.prefectures;
+      this.targetPrefCode = prefs[Math.floor(Math.random() * prefs.length)];
+      this.japanMap.setSelection([this.targetPrefCode], { hideNames: true });
+      
+      this.renderPrefChoicesFromMap();
+      this.renderTrainChoicesFromMap(); // Pre-render but keep hidden
     }
-
-    // 電車のカテゴリバッジ
-    document.getElementById('train-category-badge').textContent = this.currentTrain.categoryName;
-
-    // 5択の選択肢を作成（正解1つ + ダミー4つ）
-    this.renderTrainChoices();
   }
 
-  renderTrainChoices() {
+  renderTrainChoicesFromTrain() {
     const container = document.getElementById('train-choices-container');
     container.innerHTML = '';
-
     const allTrains = window.TRAIN_DATA;
     const distractors = allTrains.filter(t => t.id !== this.currentTrain.id);
-    
-    // シャッフルしてダミーを4つ選出
     distractors.sort(() => Math.random() - 0.5);
     const chosenDistractors = distractors.slice(0, 4);
-
-    // 正解とダミーを合わせてシャッフル
     const options = [this.currentTrain, ...chosenDistractors];
     options.sort(() => Math.random() - 0.5);
 
@@ -332,25 +366,93 @@ class QuizApp {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
       btn.innerHTML = `<span class="choice-hira">${train.name}</span><br><span class="choice-kanji">(${train.kanjiName})</span>`;
-      
       btn.addEventListener('click', () => {
         if (window.audioManager) window.audioManager.playClick();
         document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         this.selectedTrainName = train.name;
       });
-
       container.appendChild(btn);
     });
   }
 
-  // 回答判定 (割合部分点 & 0点以外ライフ減少なし)
-  checkAnswer() {
+  renderPrefChoicesFromMap() {
+    const container = document.getElementById('map-pref-choices-container');
+    container.innerHTML = '';
+    
+    // Create distractors from the map data
+    const allPrefs = Object.keys(this.japanMap.prefectureMetadata).map(k => parseInt(k, 10));
+    const distractors = allPrefs.filter(p => p !== this.targetPrefCode);
+    distractors.sort(() => Math.random() - 0.5);
+    const chosenDistractors = distractors.slice(0, 3);
+    
+    const options = [this.targetPrefCode, ...chosenDistractors];
+    options.sort(() => Math.random() - 0.5);
+
+    options.forEach(prefId => {
+      const meta = this.japanMap.prefectureMetadata[prefId];
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span class="choice-hira">${meta.yomi}</span>`;
+      btn.addEventListener('click', () => {
+        if (this.fromMapState !== 0) return;
+        if (window.audioManager) window.audioManager.playClick();
+        
+        if (prefId === this.targetPrefCode) {
+          if (window.audioManager) window.audioManager.playCorrect();
+          btn.classList.add('correct');
+          btn.style.background = '#d1fae5';
+          btn.style.borderColor = '#10b981';
+          this.fromMapState = 1;
+          document.getElementById('from-map-train-question-block').style.display = 'block';
+        } else {
+          btn.classList.add('wrong');
+          btn.style.background = '#ffe4e6';
+          btn.style.borderColor = '#f43f5e';
+          this.checkAnswerFromMap(false);
+        }
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  renderTrainChoicesFromMap() {
+    const container = document.getElementById('map-train-choices-container');
+    container.innerHTML = '';
+    
+    const allTrains = window.TRAIN_DATA;
+    const distractors = allTrains.filter(t => t.id !== this.currentTrain.id);
+    distractors.sort(() => Math.random() - 0.5);
+    const chosenDistractors = distractors.slice(0, 3);
+    
+    const options = [this.currentTrain, ...chosenDistractors];
+    options.sort(() => Math.random() - 0.5);
+
+    options.forEach(train => {
+      const btn = document.createElement('button');
+      btn.className = 'map-train-btn';
+      btn.innerHTML = `<img src="${train.imageUrl}" alt="${train.name}" /><span>${train.name}</span>`;
+      btn.addEventListener('click', () => {
+        if (this.fromMapState !== 1) return;
+        if (window.audioManager) window.audioManager.playClick();
+        
+        if (train.id === this.currentTrain.id) {
+          btn.classList.add('correct');
+          this.checkAnswerFromMap(true);
+        } else {
+          btn.classList.add('wrong');
+          this.checkAnswerFromMap(false);
+        }
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  checkAnswerFromTrain() {
     if (!this.selectedTrainName) {
       alert('電車の なまえを 選択肢から えらんでね！');
       return;
     }
-
     if (this.selectedPrefectures.length === 0) {
       alert('電車が はしっている 都道府県を 日本地図から えらんでね！');
       return;
@@ -358,53 +460,53 @@ class QuizApp {
 
     this.japanMap.setInteractive(false);
 
-    // ① 電車名判定
     const isTrainNameCorrect = (this.selectedTrainName === this.currentTrain.name);
-
-    // ② 都道府県位置判定
     const correctPrefSet = new Set(this.currentTrain.prefectures);
     const userPrefSet = new Set(this.selectedPrefectures);
 
     let correctHits = 0;
     let wrongHits = 0;
-
     userPrefSet.forEach(id => {
-      if (correctPrefSet.has(id)) {
-        correctHits++;
-      } else {
-        wrongHits++;
-      }
+      if (correctPrefSet.has(id)) correctHits++;
+      else wrongHits++;
     });
 
     const totalCorrectPrefCount = correctPrefSet.size;
-
-    // 部分点計算 (全問正解で100点)
     let pointsEarned = 0;
     let isPerfect = false;
 
     if (isTrainNameCorrect) {
-      // 電車名正解の場合、都道府県の正解割合に応じたスコア (100点満点)
       const ratio = correctHits / totalCorrectPrefCount;
       let rawScore = Math.round(ratio * 100);
-
-      // 間違えて選んでしまった都道府県がある場合は減点（0点未満にはならない）
       const penalty = wrongHits * 15;
       pointsEarned = Math.max(0, rawScore - penalty);
 
-      // 完全ピッタリ正解（電車名正解 ＆ 都道府県過不足なし）
       if (correctHits === totalCorrectPrefCount && wrongHits === 0) {
         isPerfect = true;
       }
     } else {
-      // 電車名が間違っていた場合でも、都道府県が合っていれば少量の部分点を付与
       const ratio = correctHits / totalCorrectPrefCount;
       pointsEarned = Math.max(0, Math.round(ratio * 40) - (wrongHits * 10));
     }
 
-    // 日本地図に正解・過不足のハイライトを表示
     this.japanMap.showAnswerFeedback(this.currentTrain.prefectures);
+    this.processPostAnswer(isPerfect, pointsEarned);
+  }
 
-    // 0点以外ならライフ（ハート）は減らない！
+  checkAnswerFromMap(isCorrect) {
+    let pointsEarned = 0;
+    let isPerfect = false;
+
+    if (isCorrect) {
+      isPerfect = true;
+      pointsEarned = 100;
+    }
+
+    this.japanMap.showAnswerFeedback(this.currentTrain.prefectures);
+    this.processPostAnswer(isPerfect, pointsEarned);
+  }
+
+  processPostAnswer(isPerfect, pointsEarned) {
     const isZeroPoints = (pointsEarned === 0);
 
     if (!isZeroPoints) {
@@ -417,41 +519,38 @@ class QuizApp {
 
       this.score += pointsEarned;
       window.storageManager.unlockTrain(this.currentTrain.id);
-      window.storageManager.saveHighScore(this.score);
+      window.storageManager.saveHighScore(this.gameMode, this.score);
       this.updateHeaderUI();
     } else {
-      // 0点（完全ミス）の場合のみライフを1つ消費
       if (window.audioManager) window.audioManager.playWrong();
       this.combo = 0;
       this.lives -= 1;
     }
 
-    // フィードバックパネルの表示
     const feedbackPanel = document.getElementById('feedback-panel');
     const feedbackTitle = document.getElementById('feedback-title');
     const feedbackBody = document.getElementById('feedback-body');
 
     if (isPerfect) {
       feedbackTitle.className = 'feedback-title correct';
-      feedbackTitle.innerHTML = `🎉 パーフェクト！ 100てん！`;
+      feedbackTitle.innerHTML = `🎉 だいせいかい！ 100てん！`;
     } else if (pointsEarned > 0) {
       feedbackTitle.className = 'feedback-title correct';
       feedbackTitle.innerHTML = `🌟 ナイス！ ${pointsEarned}てん かくとく！`;
     } else {
       feedbackTitle.className = 'feedback-title wrong';
-      feedbackTitle.innerHTML = `❌ 0てん… （のこり ❤️ ${this.lives}つ）`;
+      feedbackTitle.innerHTML = `❌ ざんねん… （のこり ❤️ ${this.lives}つ）`;
     }
 
     feedbackBody.innerHTML = `
-      <p class="fb-train-name">🚅 <strong>${this.currentTrain.kanjiName}</strong> (${this.currentTrain.name}) ${isTrainNameCorrect ? '✅' : '❌'}</p>
-      <p class="fb-route">📍 都道府県の正解: <strong>${correctHits} / ${totalCorrectPrefCount} 個 正解</strong> (${this.currentTrain.prefectureNames.join('・')})</p>
+      <p class="fb-train-name">🚅 <strong>${this.currentTrain.kanjiName}</strong> (${this.currentTrain.name})</p>
+      <p class="fb-route">📍 都道府県: <strong>${this.currentTrain.prefectureNames.join('・')}</strong></p>
       <p class="fb-trivia">💡 ${this.currentTrain.trivia}</p>
     `;
 
     this.updateGameStatsUI();
     feedbackPanel.classList.add('active');
 
-    // 残りライフチェック
     if (this.lives <= 0) {
       document.getElementById('btn-next-quiz').textContent = '結果をみる';
       document.getElementById('btn-next-quiz').onclick = () => {
@@ -465,11 +564,10 @@ class QuizApp {
     }
   }
 
-  // ゲームオーバー処理
   triggerGameOver() {
     if (window.audioManager) window.audioManager.playGameOver();
     
-    const isNewRecord = window.storageManager.saveHighScore(this.score);
+    const isNewRecord = window.storageManager.saveHighScore(this.gameMode, this.score);
     this.updateHeaderUI();
 
     document.getElementById('gameover-score-val').textContent = `${this.score} 点`;
@@ -484,8 +582,6 @@ class QuizApp {
 
     this.showScreen('screen-gameover');
   }
-
-  // でんしゃ図鑑（コレクション）画面の表示
   openAlbumScreen() {
     const container = document.getElementById('album-grid');
     container.innerHTML = '';

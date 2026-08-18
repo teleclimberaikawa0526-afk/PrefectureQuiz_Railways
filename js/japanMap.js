@@ -236,18 +236,21 @@ class JapanMap {
         group.parentNode.appendChild(group);
       }
     }
+    this.hideNamesOnSelection = false;
     this.updateVisuals();
     this.onSelectionChange(Array.from(this.selectedPrefectures));
   }
 
   clearSelection() {
     this.selectedPrefectures.clear();
+    this.hideNamesOnSelection = false;
     this.updateVisuals();
     this.onSelectionChange([]);
   }
 
-  setSelection(ids) {
+  setSelection(ids, options = {}) {
     this.selectedPrefectures = new Set(ids);
+    this.hideNamesOnSelection = options.hideNames || false;
     this.updateVisuals();
   }
 
@@ -284,7 +287,7 @@ class JapanMap {
         });
         if (textHira) {
           textHira.setAttribute('fill', '#FFFFFF');
-          textHira.style.display = 'block'; // 選択時に表示
+          textHira.style.display = this.hideNamesOnSelection ? 'none' : 'block'; // 選択時に表示
         }
       } else {
         group.classList.remove('selected', 'correct', 'missed', 'wrong');
