@@ -1039,3 +1039,12 @@ input:checked + .toggle-slider:before {
   text-align: center;
 }
 
+@keyframes flash-selected {
+  0% { fill: #1D4ED8; opacity: 1; }
+  50% { fill: #FDE047; opacity: 0.8; }
+  100% { fill: #1D4ED8; opacity: 1; }
+}
+
+g.selected path, g.selected polygon {
+  animation: flash-selected 0.8s ease-in-out infinite !important;
+}
