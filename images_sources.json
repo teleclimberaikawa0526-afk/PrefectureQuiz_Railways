@@ -1,3 +1,118 @@
-﻿{
-
+{
+  "hitachi": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E6%9D%B1%E6%97%A5%E6%9C%ACE657%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "JR東日本E657系電車"
+  },
+  "inaho": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E6%9D%B1%E6%97%A5%E6%9C%ACE653%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "JR東日本E653系電車"
+  },
+  "kamui": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E5%8C%97%E6%B5%B7%E9%81%93789%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "JR北海道789系電車"
+  },
+  "new_red_arrow": {
+    "url": "https://ja.wikipedia.org/wiki/%E8%A5%BF%E6%AD%A610000%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "西武10000系電車"
+  },
+  "laview": {
+    "url": "https://ja.wikipedia.org/wiki/%E8%A5%BF%E6%AD%A6001%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "西武001系電車"
+  },
+  "resort_shirakami": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E6%9D%B1%E6%97%A5%E6%9C%ACHB-E300%E7%B3%BB%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "JR東日本HB-E300系気動車"
+  },
+  "tango_no_umi": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%8C%97%E8%BF%91%E7%95%BF%E3%82%BF%E3%83%B3%E3%82%B4%E9%89%84%E9%81%93KTR8000%E5%BD%A2%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "北近畿タンゴ鉄道KTR8000形気動車"
+  },
+  "green_mover_max": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%BA%83%E5%B3%B6%E9%9B%BB%E9%89%845100%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "広島電鉄5100形電車"
+  },
+  "osaka_monorail": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%A4%A7%E9%98%AA%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%BC%E3%83%AB",
+    "title": "大阪モノレール"
+  },
+  "ishizuchi": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E5%9B%9B%E5%9B%BD8600%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "JR四国8600系電車"
+  },
+  "shimanto": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E5%9B%9B%E5%9B%BD2700%E7%B3%BB%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "JR四国2700系気動車"
+  },
+  "chiba_monorail": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%8D%83%E8%91%89%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%BC%E3%83%AB0%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "千葉都市モノレール0形電車"
+  },
+  "rapiit": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%8D%97%E6%B5%B750000%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "南海50000系電車"
+  },
+  "hinotori": {
+    "url": "https://ja.wikipedia.org/wiki/%E8%BF%91%E9%89%8480000%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "近鉄80000系電車"
+  },
+  "yui_rail": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%B2%96%E7%B8%84%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%BC%E3%83%AB1000%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "沖縄都市モノレール1000形電車"
+  },
+  "kamome": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%96%B0%E5%B9%B9%E7%B7%9AN700S%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "新幹線N700S系電車"
+  },
+  "super_oki": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E8%A5%BF%E6%97%A5%E6%9C%AC%E3%82%AD%E3%83%8F187%E7%B3%BB%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "JR西日本キハ187系気動車"
+  },
+  "alps_express": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%AF%8C%E5%B1%B1%E5%9C%B0%E6%96%B9%E9%89%84%E9%81%9316010%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "富山地方鉄道16010形電車"
+  },
+  "toki": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%96%B0%E5%B9%B9%E7%B7%9AE7%E7%B3%BB%E3%83%BBW7%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "新幹線E7系・W7系電車"
+  },
+  "kuroshio": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E8%A5%BF%E6%97%A5%E6%9C%AC287%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "JR西日本287系電車"
+  },
+  "uzushio": {
+    "url": "https://ja.wikipedia.org/wiki/JR%E5%9B%9B%E5%9B%BD2600%E7%B3%BB%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "JR四国2600系気動車"
+  },
+  "umisachi_yamasachi": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%B5%B7%E5%B9%B8%E5%B1%B1%E5%B9%B8_%28%E5%88%97%E8%BB%8A%29",
+    "title": "海幸山幸_(列車)"
+  },
+  "enoden": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%B1%9F%E3%83%8E%E5%B3%B6%E9%9B%BB%E9%89%84",
+    "title": "江ノ島電鉄"
+  },
+  "shonan_monorail": {
+    "url": "https://ja.wikipedia.org/wiki/%E6%B9%98%E5%8D%97%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%BC%E3%83%AB5000%E7%B3%BB%E9%9B%BB%E8%BB%8A",
+    "title": "湘南モノレール5000系電車"
+  },
+  "kurobe_gorge": {
+    "url": "https://ja.wikipedia.org/wiki/%E9%BB%92%E9%83%A8%E5%B3%A1%E8%B0%B7%E9%89%84%E9%81%93",
+    "title": "黒部峡谷鉄道"
+  },
+  "hakone_tozan": {
+    "url": "https://ja.wikipedia.org/wiki/%E7%AE%B1%E6%A0%B9%E7%99%BB%E5%B1%B1%E9%89%84%E9%81%933000%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "箱根登山鉄道3000形電車"
+  },
+  "botchan_ressha": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%9D%8A%E3%81%A3%E3%81%A1%E3%82%83%E3%82%93%E5%88%97%E8%BB%8A",
+    "title": "坊っちゃん列車"
+  },
+  "randen": {
+    "url": "https://ja.wikipedia.org/wiki/%E4%BA%AC%E7%A6%8F%E9%9B%BB%E6%B0%97%E9%89%84%E9%81%93%E3%83%A2%E3%83%9C21%E5%BD%A2%E9%9B%BB%E8%BB%8A",
+    "title": "京福電気鉄道モボ21形電車"
+  },
+  "asoboy": {
+    "url": "https://ja.wikipedia.org/wiki/%E5%9B%BD%E9%89%84%E3%82%AD%E3%83%8F183%E7%B3%BB%E6%B0%97%E5%8B%95%E8%BB%8A",
+    "title": "国鉄キハ183系気動車"
+  }
 }

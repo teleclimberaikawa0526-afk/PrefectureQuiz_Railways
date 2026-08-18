@@ -49,11 +49,14 @@
           <p class="rank-highscore">さいこう きろく: <strong id="title-highscore-val">0 てん</strong></p>
         </div>
 
-        <div class="title-actions">
-          <button id="btn-start-game" class="btn-primary btn-large">
-            🎮 クイズを はじめる！
+        <div class="title-actions" style="flex-direction: column; gap: 10px;">
+          <button id="btn-start-from-train" class="btn-primary btn-large" style="width: 100%;">
+            🎮 でんしゃから えらぶ
           </button>
-          <button id="btn-view-album" class="btn-secondary btn-large">
+          <button id="btn-start-from-map" class="btn-primary btn-large" style="width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            🗺️ ちずから えらぶ
+          </button>
+          <button id="btn-view-album" class="btn-secondary btn-large" style="width: 100%; margin-top: 10px;">
             📖 でんしゃずかん
           </button>
         </div>
@@ -80,7 +83,7 @@
       <div class="quiz-layout">
         <!-- 左カラム：電車実写写真 ＆ ①問題：名前選択 -->
         <div class="quiz-left-panel">
-          <div class="train-photo-card">
+          <div class="train-photo-card" id="train-photo-card">
             <div class="photo-badge" id="train-category-badge">新幹線</div>
             <div id="train-photo-loading" class="photo-loading">
               <div class="spinner"></div>
@@ -89,22 +92,38 @@
             <img id="train-photo" class="train-img" alt="電車の写真" />
           </div>
 
-          <div class="question-block">
+          <!-- モード: でんしゃからえらぶ -->
+          <div class="question-block" id="from-train-question-block">
             <h3 class="q-title">① この でんしゃの なまえは どれかな？</h3>
             <div id="train-choices-container" class="choices-grid">
               <!-- JSで5つの選択肢ボタンを動的挿入 -->
+            </div>
+          </div>
+
+          <!-- モード: ちずからえらぶ -->
+          <div class="question-block" id="from-map-pref-question-block" style="display: none;">
+            <h3 class="q-title">① この とどうふけんは なにけん？</h3>
+            <div id="map-pref-choices-container" class="choices-grid">
+              <!-- JSで都道府県名ボタンを動的挿入 -->
+            </div>
+          </div>
+
+          <div class="question-block" id="from-map-train-question-block" style="display: none; margin-top: 15px;">
+            <h3 class="q-title" style="color: #e11d48;">② この とどうふけんを はしる でんしゃは？</h3>
+            <div id="map-train-choices-container" class="choices-grid map-train-grid">
+              <!-- JSで電車写真＋名前ボタンを動的挿入 -->
             </div>
           </div>
         </div>
 
         <!-- 右カラム：②問題：都道府県ビジュアル位置選択（SVG日本地図） -->
         <div class="quiz-right-panel">
-          <div class="question-block">
+          <div class="question-block" id="map-question-block">
             <div class="q-header">
-              <h3 class="q-title">② この電車が はしっている とどうふけんを タップしよう！</h3>
+              <h3 class="q-title" id="map-q-title">② この電車が はしっている とどうふけんを タップしよう！</h3>
               <span id="selected-pref-count" class="selected-count-badge">0個 えらんでいるよ</span>
             </div>
-            <p class="q-desc">（日本地図の つぎの ばしょを タップして えらんでね。なんこでも えらべるよ！）</p>
+            <p class="q-desc" id="map-q-desc">（日本地図の つぎの ばしょを タップして えらんでね。なんこでも えらべるよ！）</p>
 
             <div id="map-container" class="map-wrapper">
               <!-- SVG Japan Map -->
@@ -174,6 +193,9 @@
           </button>
           <button id="btn-gameover-album" class="btn-secondary btn-large">
             📖 でんしゃずかん
+          </button>
+          <button id="btn-back-title" class="btn-secondary btn-large" style="margin-top: 10px; display: block; width: 100%;">
+            🏠 タイトルへ もどる
           </button>
         </div>
       </div>
@@ -290,9 +312,9 @@
   <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js"></script>
   <script src="js/trainData.js"></script>
   <script src="js/mapSvg.js"></script>
-  <script src="js/japanMap.js"></script>
+  <script src="js/japanMap.js?v=2"></script>
   <script src="js/audio.js"></script>
   <script src="js/storage.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>

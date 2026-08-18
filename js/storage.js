@@ -3,9 +3,11 @@ class StorageManager {
   constructor() {
     this.KEYS = {
       IS_TEST_MODE: 'prefecture_quiz_is_test_mode',
-      NORMAL_HIGHSCORE: 'prefecture_quiz_normal_highscore',
+      NORMAL_HIGHSCORE_FROM_TRAIN: 'prefecture_quiz_normal_highscore_train',
+      NORMAL_HIGHSCORE_FROM_MAP: 'prefecture_quiz_normal_highscore_map',
       NORMAL_ALBUM: 'prefecture_quiz_normal_album',
-      TEST_HIGHSCORE: 'prefecture_quiz_test_highscore',
+      TEST_HIGHSCORE_FROM_TRAIN: 'prefecture_quiz_test_highscore_train',
+      TEST_HIGHSCORE_FROM_MAP: 'prefecture_quiz_test_highscore_map',
       TEST_ALBUM: 'prefecture_quiz_test_album',
       PASSCODE: 'prefecture_quiz_passcode',
       TIME_LIMIT: 'prefecture_quiz_time_limit_mins',
@@ -22,17 +24,27 @@ class StorageManager {
     localStorage.setItem(this.KEYS.IS_TEST_MODE, enabled ? 'true' : 'false');
   }
 
-  // ハイスコア取得
-  getHighScore() {
-    const key = this.isTestMode() ? this.KEYS.TEST_HIGHSCORE : this.KEYS.NORMAL_HIGHSCORE;
+  // ハイスコア取得 (gameMode: 'from_train' | 'from_map')
+  getHighScore(gameMode = 'from_train') {
+    let key;
+    if (this.isTestMode()) {
+      key = gameMode === 'from_map' ? this.KEYS.TEST_HIGHSCORE_FROM_MAP : this.KEYS.TEST_HIGHSCORE_FROM_TRAIN;
+    } else {
+      key = gameMode === 'from_map' ? this.KEYS.NORMAL_HIGHSCORE_FROM_MAP : this.KEYS.NORMAL_HIGHSCORE_FROM_TRAIN;
+    }
     return parseInt(localStorage.getItem(key) || '0', 10);
   }
 
-  // ハイスコア更新（更新された場合 true を返す）
-  saveHighScore(score) {
-    const current = this.getHighScore();
+  // ハイスコア更新（更新された場合は true を返す）
+  saveHighScore(gameMode, score) {
+    const current = this.getHighScore(gameMode);
     if (score > current) {
-      const key = this.isTestMode() ? this.KEYS.TEST_HIGHSCORE : this.KEYS.NORMAL_HIGHSCORE;
+      let key;
+      if (this.isTestMode()) {
+        key = gameMode === 'from_map' ? this.KEYS.TEST_HIGHSCORE_FROM_MAP : this.KEYS.TEST_HIGHSCORE_FROM_TRAIN;
+      } else {
+        key = gameMode === 'from_map' ? this.KEYS.NORMAL_HIGHSCORE_FROM_MAP : this.KEYS.NORMAL_HIGHSCORE_FROM_TRAIN;
+      }
       localStorage.setItem(key, score.toString());
       return true;
     }
@@ -120,12 +132,14 @@ class StorageManager {
 
   // データリセット
   resetNormalData() {
-    localStorage.removeItem(this.KEYS.NORMAL_HIGHSCORE);
+    localStorage.removeItem(this.KEYS.NORMAL_HIGHSCORE_FROM_TRAIN);
+    localStorage.removeItem(this.KEYS.NORMAL_HIGHSCORE_FROM_MAP);
     localStorage.removeItem(this.KEYS.NORMAL_ALBUM);
   }
 
   resetTestData() {
-    localStorage.removeItem(this.KEYS.TEST_HIGHSCORE);
+    localStorage.removeItem(this.KEYS.TEST_HIGHSCORE_FROM_TRAIN);
+    localStorage.removeItem(this.KEYS.TEST_HIGHSCORE_FROM_MAP);
     localStorage.removeItem(this.KEYS.TEST_ALBUM);
   }
 }
